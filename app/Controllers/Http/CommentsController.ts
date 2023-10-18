@@ -27,13 +27,16 @@ export default class CommentsController {
   }
 
   public async show({ params }: HttpContextContract) {
-    const comment = await Comment.findOrFail(params.id)
+    const moment = await Moment.findOrFail(params.momentId)
+
+    const comment = await moment.related('comments').query().where('id', params.id).firstOrFail()
 
     return { data: comment }
   }
 
   public async destroy({ params }: HttpContextContract) {
-    const comment = await Comment.findOrFail(params.id)
+    const moment = await Moment.findOrFail(params.momentId)
+    const comment = await moment.related('comments').query().where('id', params.id).firstOrFail()
 
     await comment.delete()
 
@@ -41,14 +44,14 @@ export default class CommentsController {
   }
 
   public async update({ params, request }: HttpContextContract) {
-    const comment = await Comment.findOrFail(params.id)
+    const moment = await Moment.findOrFail(params.momentId)
+    const comment = await moment.related('comments').query().where('id', params.id).firstOrFail()
 
     const body = request.body()
 
-    if (comment) {
-      if (body.text !== comment.text) {
-        comment.text = body.text
-      }
+    if (comment && body.text !== comment.text) {
+      comment.text = body.text
+
       await comment.save()
     }
 
